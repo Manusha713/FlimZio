@@ -9,7 +9,7 @@ export default function MovieRow({ title, movies, wishlist, onToggleWishlist, on
   const displayMovies = movies.slice(0, 15);
 
   return (
-    <div className="mb-10">
+    <div className="w-full min-w-0 mb-10">
       <div className="flex justify-between items-end mb-4">
         <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
         {/* Render View All button only if onShowAll handler exists */}
@@ -21,9 +21,9 @@ export default function MovieRow({ title, movies, wishlist, onToggleWishlist, on
       </div>
       
       {/* Scrollable Container */}
-      <div className="flex overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar">
+      <div className="flex w-full min-w-0 overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar">
         {displayMovies.map((movie) => (
-          <div key={movie.id} className="min-w-[220px] max-w-[220px] snap-start flex-shrink-0">
+          <div key={movie.id} className="w-[calc((100vw-3.5rem)/2)] max-w-[220px] snap-start flex-shrink-0 sm:w-[220px] sm:min-w-[220px]">
             <MovieCard
               movie={movie}
               isWishlisted={wishlist.some((item) => item.movieId === movie.id)}
@@ -37,7 +37,7 @@ export default function MovieRow({ title, movies, wishlist, onToggleWishlist, on
         {onShowAll && (
           <div 
             onClick={onShowAll}
-            className="min-w-[220px] max-w-[220px] snap-start flex-shrink-0 flex flex-col items-center justify-center bg-slate-900 border border-slate-800 rounded-xl cursor-pointer hover:bg-slate-800 transition-colors group"
+            className="w-[calc((100vw-3.5rem)/2)] max-w-[220px] snap-start flex-shrink-0 sm:w-[220px] sm:min-w-[220px] flex flex-col items-center justify-center bg-slate-900 border border-slate-800 rounded-xl cursor-pointer hover:bg-slate-800 transition-colors group"
           >
             <div className="bg-indigo-600/20 p-4 rounded-full mb-3 group-hover:bg-indigo-600/40 transition-colors">
               <ArrowRight className="w-8 h-8 text-indigo-400 group-hover:text-indigo-300" />

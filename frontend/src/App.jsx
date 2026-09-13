@@ -47,7 +47,6 @@ function App() {
     setNavigationHistory((history) => [...history, getCurrentView()]);
     setSelectedMovie(null);
     setViewingCategory(null);
-    setMovies(nextTab === 'search' ? [] : movies);
     setSearchExpanded(nextTab === 'search');
     setActiveTab(nextTab);
   };
@@ -197,7 +196,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-10">
+    <div className="w-full min-h-screen bg-slate-950 text-slate-100 font-sans pb-10">
       <Navbar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
@@ -209,7 +208,7 @@ function App() {
         onOpenSearch={handleOpenSearch}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full max-w-none min-w-0 px-4 sm:px-8 lg:px-12 py-8">
         {navigationHistory.length > 0 && (activeTab !== 'trending' || selectedMovie) && (
           <div className="flex justify-end mb-6">
             <button
@@ -284,7 +283,7 @@ function App() {
               wishlist.length === 0 ? (
                 <div className="text-center py-20 text-slate-500">Your wishlist is empty.</div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
                   {wishlist.map((item) => (
                     <MovieCard
                       key={item.movieId || item.id}
@@ -303,7 +302,7 @@ function App() {
               movies.length === 0 ? (
                 <div className="text-center py-20 text-slate-500">Type a movie title above and press Search.</div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
                   {movies.map((movie) => (
                     <MovieCard
                       key={movie.id}
@@ -357,7 +356,7 @@ function App() {
 
             {/* Category Full-Grid View */}
             {activeTab === 'trending' && viewingCategory && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
                 {viewingCategory.movies.map((movie) => (
                   <MovieCard
                     key={movie.id}

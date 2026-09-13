@@ -33,11 +33,11 @@ export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSel
             e.stopPropagation(); // Prevents clicking the heart from opening the detail page
             onToggleWishlist(movie);
           }}
-          className="absolute top-3 right-3 p-2 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white backdrop-blur-sm transition-colors"
+          className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white backdrop-blur-sm transition-colors"
           aria-label="Toggle Wishlist"
         >
           <Heart 
-            className={`w-5 h-5 transition-colors ${
+            className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
               isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-200'
             }`} 
           />
@@ -45,9 +45,9 @@ export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSel
       </div>
 
       {/* Movie Info */}
-      <div className="p-4 flex flex-col flex-grow justify-between">
+      <div className="p-3 sm:p-4 flex flex-col flex-grow justify-between">
         <div>
-          <h3 className="font-semibold text-slate-100 truncate group-hover:text-indigo-400 transition-colors">
+          <h3 className="text-sm sm:text-base font-semibold text-slate-100 truncate group-hover:text-indigo-400 transition-colors">
             {title}
           </h3>
           {releaseYear && (

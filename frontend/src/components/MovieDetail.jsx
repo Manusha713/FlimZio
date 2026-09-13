@@ -80,7 +80,7 @@ export default function MovieDetail({ movieId, wishlist, onToggleWishlist, onSel
   };
 
   return (
-    <div className="min-h-screen text-slate-100 pb-12">
+    <div className="w-full min-h-screen min-w-0 text-slate-100 pb-12">
       {/* Hero Header */}
       <div className="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 mb-10">
         {movie.backdropPath && (
@@ -90,19 +90,19 @@ export default function MovieDetail({ movieId, wishlist, onToggleWishlist, onSel
           </div>
         )}
 
-        <div className="relative p-6 sm:p-8 md:p-10 flex flex-col md:flex-row gap-8 items-start">
+        <div className="relative p-4 sm:p-8 md:p-10 flex flex-col md:flex-row gap-5 sm:gap-8 items-start">
           <img
             src={movie.posterPath || 'https://via.placeholder.com/300x450?text=No+Poster'}
             alt={movie.title}
-            className="w-full md:w-64 rounded-xl shadow-2xl border border-slate-700/50 object-cover flex-shrink-0"
+            className="w-full max-w-[220px] sm:max-w-[280px] md:w-64 md:max-w-none mx-auto md:mx-0 rounded-xl shadow-2xl border border-slate-700/50 object-cover flex-shrink-0"
           />
 
           <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">{movie.title}</h1>
+            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">{movie.title}</h1>
             {movie.tagline && <p className="text-indigo-400 italic text-lg mb-4">"{movie.tagline}"</p>}
 
             {/* Quick Metadata Pill Container */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-slate-300 mb-6">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-slate-300 mb-6">
               <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1 rounded-full font-semibold">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                 <span>{movie.voteAverage} / 10</span>
