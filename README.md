@@ -142,6 +142,7 @@ AI coding assistance was used during development to:
 - Diagnose image-loading failures and add fallback states.
 - Refine navigation, search, wishlist, and movie-detail interactions.
 - Review build diagnostics and prepare project documentation.
+- AI Agents - Copilot, ChatGPT, Gemini AI
 
 All generated suggestions were reviewed and adapted to the existing project structure.
 
