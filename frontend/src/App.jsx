@@ -11,21 +11,23 @@ import {
   addToWishlist, 
   removeFromWishlist,
   fetchTopRatedMovies,
-  fetchMoviesByGenre
+  fetchMoviesByGenre,
+  fetchSimilarMovies
 } from './services/api';
-import { Loader2, Sparkles, ArrowLeft } from 'lucide-react';
+import { Loader2, Sparkles, ArrowLeft, ArrowRight } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('trending');
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [navigationHistory, setNavigationHistory] = useState([]);
+  const [heroOpacity, setHeroOpacity] = useState(1);
   
   // Navigation & Detail States
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [viewingCategory, setViewingCategory] = useState(null);
 
   // Dashboard row states
-  const [homeData, setHomeData] = useState({ trending: [], topRated: [], action: [], comedy: [] });
+  const [homeData, setHomeData] = useState({ trending: [], topRated: [], youMightLike: [], action: [], comedy: [], romance: [] });
   
   // Search & Wishlist states
   const [movies, setMovies] = useState([]);
@@ -34,6 +36,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [autocorrectedWord, setAutocorrectedWord] = useState(null);
+  const [categoryPageLoading, setCategoryPageLoading] = useState(false);
+  const [categoryPageError, setCategoryPageError] = useState(null);
 
   const getCurrentView = () => ({
     activeTab,
@@ -81,6 +85,16 @@ function App() {
     loadWishlist();
   }, []);
 
+  useEffect(() => {
+    const updateHeroOpacity = () => {
+      setHeroOpacity(Math.max(0, 1 - window.scrollY / 520));
+    };
+
+    updateHeroOpacity();
+    window.addEventListener('scroll', updateHeroOpacity, { passive: true });
+    return () => window.removeEventListener('scroll', updateHeroOpacity);
+  }, []);
+
   // Reset states when tab changes
   useEffect(() => {
     setError(null);
@@ -92,16 +106,54 @@ function App() {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadWishlistRecommendations = async () => {
+      if (activeTab !== 'trending' || wishlist.length === 0) {
+        setHomeData((current) => ({ ...current, youMightLike: [] }));
+        return;
+      }
+
+      try {
+        const savedIds = new Set(wishlist.map((item) => item.movieId || item.id));
+        const responses = await Promise.all(
+          wishlist.slice(0, 3).map((item) => fetchSimilarMovies(item.movieId || item.id))
+        );
+        const recommendations = responses
+          .flatMap((response) => response?.data?.results || response?.results || [])
+          .filter((movie) => movie && !savedIds.has(movie.id));
+        const uniqueRecommendations = Array.from(
+          new Map(recommendations.map((movie) => [movie.id, movie])).values()
+        );
+
+        if (!cancelled) {
+          setHomeData((current) => ({ ...current, youMightLike: uniqueRecommendations }));
+        }
+      } catch (recommendationError) {
+        if (!cancelled) {
+          setHomeData((current) => ({ ...current, youMightLike: [] }));
+        }
+      }
+    };
+
+    loadWishlistRecommendations();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, wishlist]);
+
   const loadHomeDashboard = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const [trendRes, topRes, actionRes, comedyRes] = await Promise.all([
+      const [trendRes, topRes, actionRes, comedyRes, romanceRes] = await Promise.all([
         fetchTrendingMovies(),
         fetchTopRatedMovies(),
         fetchMoviesByGenre('28'),
-        fetchMoviesByGenre('35')
+        fetchMoviesByGenre('35'),
+        fetchMoviesByGenre('10749')
       ]);
 
       const extractResults = (res) => res?.data?.results || res?.results || res?.data || [];
@@ -110,7 +162,8 @@ function App() {
         trending: extractResults(trendRes),
         topRated: extractResults(topRes),
         action: extractResults(actionRes),
-        comedy: extractResults(comedyRes)
+        comedy: extractResults(comedyRes),
+        romance: extractResults(romanceRes)
       });
     } catch (err) {
       setError('Failed to load home dashboard. Ensure backend is running.');
@@ -179,14 +232,51 @@ function App() {
   };
 
   const isMovieInWishlist = (movieId) => {
-    return wishlist.some((item) => item.movieId === movieId);
+    return wishlist.some((item) => String(item.movieId || item.id) === String(movieId));
   };
 
-  const handleShowAll = (title, categoryMovies) => {
+  const getAvailableHomeMovies = (moviesToFilter = []) => {
+    const savedIds = new Set(wishlist.map((item) => String(item.movieId || item.id)));
+    return moviesToFilter.filter((movie) => !savedIds.has(String(movie.id)));
+  };
+
+  const extractResults = (response) => response?.data?.results || response?.results || response?.data || [];
+
+  const handleShowAll = (title, categoryMovies, loadPage) => {
     setNavigationHistory((history) => [...history, getCurrentView()]);
-    setViewingCategory({ title, movies: categoryMovies });
+    setCategoryPageError(null);
+    setViewingCategory({
+      title,
+      movies: getAvailableHomeMovies(categoryMovies),
+      page: 1,
+      totalPages: 500,
+      loadPage,
+    });
     setSelectedMovie(null);
     window.scrollTo(0, 0);
+  };
+
+  const handleNextCategoryPage = async () => {
+    if (!viewingCategory?.loadPage || categoryPageLoading || viewingCategory.page >= viewingCategory.totalPages) return;
+
+    const nextPage = viewingCategory.page + 1;
+    try {
+      setCategoryPageLoading(true);
+      setCategoryPageError(null);
+      const response = await viewingCategory.loadPage(nextPage);
+      const nextMovies = getAvailableHomeMovies(extractResults(response));
+
+      setViewingCategory((current) => ({
+        ...current,
+        page: nextPage,
+        totalPages: response?.data?.totalPages || response?.totalPages || current.totalPages,
+        movies: [...current.movies, ...nextMovies.filter((movie) => !current.movies.some((item) => item.id === movie.id))],
+      }));
+    } catch (pageError) {
+      setCategoryPageError('Unable to load more movies. Please try again.');
+    } finally {
+      setCategoryPageLoading(false);
+    }
   };
 
   const handleSelectMovie = (movie) => {
@@ -319,53 +409,119 @@ function App() {
             {/* Dashboard Rows View */}
             {activeTab === 'trending' && !viewingCategory && (
               <div className="space-y-4">
+                <section className="relative isolate -mx-1 mb-12 min-h-[260px] overflow-hidden rounded-3xl border border-indigo-400/10 bg-slate-900/30 px-5 py-12 sm:px-10 sm:py-16">
+                  <div
+                    className="pointer-events-none absolute inset-0 -z-10 bg-cover bg-center transition-opacity duration-300"
+                    style={{
+                      backgroundImage: 'url("https://m.media-amazon.com/images/I/817rFOdsCFL._AC_UF894,1000_QL80_.jpg")',
+                      opacity: heroOpacity * 0.7,
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-y-0 left-0 -z-10 w-1/2 bg-gradient-to-r from-slate-950/25 via-slate-950/5 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/85 via-slate-950/35 to-slate-950/10" />
+                  <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/85 via-transparent to-slate-950/15" />
+                  <div className="relative max-w-2xl">
+                    <h1 className="text-4xl font-black tracking-tight text-white sm:text-6xl">Your Next Watch</h1>
+                    <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-200 sm:text-lg">
+                      Explore popular, trending, and highly rated movies and find something worth watching.
+                    </p>
+                  </div>
+                </section>
                 <MovieRow 
                   title="Trending Movies" 
-                  movies={homeData.trending} 
+                  movies={getAvailableHomeMovies(homeData.trending)} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
                   onSelectMovie={handleSelectMovie}
-                  onShowAll={() => handleShowAll("Trending Movies", homeData.trending)} 
+                  onShowAll={() => handleShowAll("Trending Movies", homeData.trending, fetchTrendingMovies)} 
                 />
                 <MovieRow 
                   title="Top Rated" 
-                  movies={homeData.topRated} 
+                  movies={getAvailableHomeMovies(homeData.topRated)} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
                   onSelectMovie={handleSelectMovie}
-                  onShowAll={() => handleShowAll("Top Rated", homeData.topRated)} 
+                  onShowAll={() => handleShowAll("Top Rated", homeData.topRated, fetchTopRatedMovies)} 
+                />
+                <MovieRow
+                  title="You Might Like"
+                  movies={getAvailableHomeMovies(homeData.youMightLike)}
+                  wishlist={wishlist}
+                  onToggleWishlist={handleToggleWishlist}
+                  onSelectMovie={handleSelectMovie}
                 />
                 <MovieRow 
                   title="Action Blockbusters" 
-                  movies={homeData.action} 
+                  movies={getAvailableHomeMovies(homeData.action)} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
                   onSelectMovie={handleSelectMovie}
-                  onShowAll={() => handleShowAll("Action Blockbusters", homeData.action)} 
+                  onShowAll={() => handleShowAll("Action Blockbusters", homeData.action, (page) => fetchMoviesByGenre('28', page))} 
+                />
+                <MovieRow
+                  title="Tales of Love"
+                  movies={getAvailableHomeMovies(homeData.romance)}
+                  wishlist={wishlist}
+                  onToggleWishlist={handleToggleWishlist}
+                  onSelectMovie={handleSelectMovie}
+                  onShowAll={() => handleShowAll("Tales of Love", homeData.romance, (page) => fetchMoviesByGenre('10749', page))}
                 />
                 <MovieRow 
                   title="Comedy Hits" 
-                  movies={homeData.comedy} 
+                  movies={getAvailableHomeMovies(homeData.comedy)} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
                   onSelectMovie={handleSelectMovie}
-                  onShowAll={() => handleShowAll("Comedy Hits", homeData.comedy)} 
+                  onShowAll={() => handleShowAll("Comedy Hits", homeData.comedy, (page) => fetchMoviesByGenre('35', page))} 
                 />
+                <button
+                  type="button"
+                  onClick={() => handleTabChange('explore')}
+                  className="group relative flex w-full items-center justify-between overflow-hidden rounded-2xl border border-indigo-400/20 bg-gradient-to-r from-indigo-950/70 via-slate-900 to-slate-900 px-5 py-5 text-left shadow-xl shadow-indigo-950/10 transition-all duration-300 hover:border-indigo-400/50 hover:from-indigo-900/70 sm:px-7 sm:py-6"
+                >
+                  <span className="relative">
+                    <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Keep exploring</span>
+                    <span className="mt-1 block text-lg font-bold text-white sm:text-xl">Discover more movies</span>
+                    <span className="mt-1 block text-sm text-slate-400">Find your next favorite beyond the home collections.</span>
+                  </span>
+                  <span className="ml-4 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-indigo-300/30 bg-indigo-500/20 text-indigo-200 transition-transform duration-300 group-hover:translate-x-1 group-hover:bg-indigo-500/40 sm:h-14 sm:w-14">
+                    <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </span>
+                </button>
               </div>
             )}
 
             {/* Category Full-Grid View */}
             {activeTab === 'trending' && viewingCategory && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-                {viewingCategory.movies.map((movie) => (
-                  <MovieCard
-                    key={movie.id}
-                    movie={movie}
-                    isWishlisted={isMovieInWishlist(movie.id)}
-                    onToggleWishlist={handleToggleWishlist}
-                    onSelectMovie={handleSelectMovie}
-                  />
-                ))}
+              <div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+                  {viewingCategory.movies.map((movie) => (
+                    <MovieCard
+                      key={movie.id}
+                      movie={movie}
+                      isWishlisted={isMovieInWishlist(movie.id)}
+                      onToggleWishlist={handleToggleWishlist}
+                      onSelectMovie={handleSelectMovie}
+                    />
+                  ))}
+                </div>
+
+                {categoryPageError && (
+                  <p className="mt-6 text-center text-sm text-rose-400">{categoryPageError}</p>
+                )}
+
+                {viewingCategory.page < viewingCategory.totalPages && (
+                  <div className="mt-8 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleNextCategoryPage}
+                      disabled={categoryPageLoading}
+                      className="flex min-w-40 items-center justify-center rounded-xl border border-indigo-500/40 bg-indigo-600/15 px-5 py-3 text-sm font-semibold text-indigo-200 transition-colors hover:border-indigo-400 hover:bg-indigo-600/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {categoryPageLoading ? 'Loading more...' : 'Next Page'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

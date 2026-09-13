@@ -91,11 +91,20 @@ export default function MovieDetail({ movieId, wishlist, onToggleWishlist, onSel
         )}
 
         <div className="relative p-4 sm:p-8 md:p-10 flex flex-col md:flex-row gap-5 sm:gap-8 items-start">
-          <img
-            src={movie.posterPath || 'https://via.placeholder.com/300x450?text=No+Poster'}
-            alt={movie.title}
-            className="w-full max-w-[220px] sm:max-w-[280px] md:w-64 md:max-w-none mx-auto md:mx-0 rounded-xl shadow-2xl border border-slate-700/50 object-cover flex-shrink-0"
-          />
+          {movie.posterPath ? (
+            <img
+              src={movie.posterPath}
+              alt={movie.title}
+              onError={(event) => {
+                event.currentTarget.style.display = 'none';
+                event.currentTarget.nextElementSibling.style.display = 'flex';
+              }}
+              className="w-full max-w-[220px] sm:max-w-[280px] md:w-64 md:max-w-none mx-auto md:mx-0 rounded-xl shadow-2xl border border-slate-700/50 object-cover flex-shrink-0"
+            />
+          ) : null}
+          <div className={`${movie.posterPath ? 'hidden' : 'flex'} w-full max-w-[220px] sm:max-w-[280px] md:w-64 md:max-w-none mx-auto md:mx-0 aspect-[2/3] items-center justify-center rounded-xl border border-indigo-400/20 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 p-6 text-center shadow-2xl`}>
+            <span className="font-serif text-2xl font-bold leading-tight text-indigo-100">{movie.title}</span>
+          </div>
 
           <div className="flex-1">
             <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight mb-2">{movie.title}</h1>

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Heart } from 'lucide-react';
 
 export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSelectMovie }) {
   const title = movie.title || movie.name || 'Untitled';
+  const [imageFailed, setImageFailed] = useState(false);
   const posterPath = movie.posterUrl || (
     movie.poster_path
       ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
@@ -20,12 +21,19 @@ export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSel
     >
       {/* Poster Container */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-950">
-        <img
-          src={posterPath}
-          alt={title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          loading="lazy"
-        />
+        {imageFailed ? (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 p-5 text-center">
+            <span className="font-serif text-xl font-bold leading-tight text-indigo-100 sm:text-2xl">{title}</span>
+          </div>
+        ) : (
+          <img
+            src={posterPath}
+            alt={title}
+            onError={() => setImageFailed(true)}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+        )}
         
         {/* Wishlist Button */}
         <button
