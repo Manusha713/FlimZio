@@ -299,7 +299,7 @@ function App() {
       />
 
       <main className="w-full max-w-none min-w-0 px-4 sm:px-8 lg:px-12 py-8">
-        {navigationHistory.length > 0 && (activeTab !== 'trending' || selectedMovie) && (
+        {navigationHistory.length > 0 && selectedMovie && (
           <div className="flex justify-end mb-6">
             <button
               onClick={handleBack}

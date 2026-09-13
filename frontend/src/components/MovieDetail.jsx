@@ -140,11 +140,11 @@ export default function MovieDetail({ movieId, wishlist, onToggleWishlist, onSel
               onClick={() => onToggleWishlist(movie)}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
                 isWishlisted
-                  ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/30'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                  ? 'border border-white/20 bg-gradient-to-r from-violet-600/85 to-fuchsia-600/85 text-white shadow-lg shadow-fuchsia-950/30 hover:from-violet-500 hover:to-fuchsia-500'
+                  : 'border border-white/10 bg-white/5 text-slate-200 backdrop-blur-md hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15'
               }`}
             >
-              <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-white' : ''}`} />
+              <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-fuchsia-200 text-fuchsia-100' : ''}`} />
               {isWishlisted ? 'Saved in Wishlist' : 'Add to Wishlist'}
             </button>
 

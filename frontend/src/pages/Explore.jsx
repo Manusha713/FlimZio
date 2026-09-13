@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AlertCircle, ChevronLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, ChevronDown, ChevronLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
 import MovieCard from '../components/MovieCard';
 import SkeletonCard from '../components/SkeletonCard';
 import { fetchExploreMovies, fetchGenres } from '../services/api';
@@ -120,12 +120,12 @@ export default function Explore({ wishlist, onToggleWishlist, onSelectMovie }) {
 	return (
 		<section className="space-y-8">
 			<div>
-				<p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-400">Find your next favorite</p>
+				<p className="mb-2 text-sm font-semibold uppercase tracking-[0.18em] text-fuchsia-300">Find your next favorite</p>
 				<h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Explore Movies</h1>
 				<p className="mt-2 max-w-2xl text-slate-400">Browse popular releases, timeless favorites, and what is coming next.</p>
 			</div>
 
-			<div className="space-y-5 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
+			<div className="space-y-5 rounded-2xl border border-white/10 bg-white/[0.06] p-4 shadow-xl shadow-black/10 backdrop-blur-md sm:p-5">
 				<div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar" role="tablist" aria-label="Movie categories">
 					{categories.map((item) => (
 						<button
@@ -136,8 +136,8 @@ export default function Explore({ wishlist, onToggleWishlist, onSelectMovie }) {
 							onClick={() => changeCategory(item.value)}
 							className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
 								category === item.value
-									? 'bg-indigo-600 text-white shadow-lg shadow-indigo-950/30'
-									: 'text-slate-400 hover:bg-slate-800 hover:text-white'
+									? 'border border-white/20 bg-gradient-to-r from-violet-600/80 to-fuchsia-600/80 text-white shadow-lg shadow-fuchsia-950/30'
+									: 'border border-transparent text-slate-300 hover:border-fuchsia-400/30 hover:bg-fuchsia-500/10 hover:text-white'
 							}`}
 						>
 							{item.label}
@@ -148,16 +148,22 @@ export default function Explore({ wishlist, onToggleWishlist, onSelectMovie }) {
 				<div className="grid gap-3 sm:grid-cols-2 sm:max-w-xl">
 					<label className="text-sm text-slate-400">
 						<span className="mb-2 block font-medium text-slate-300">Genre</span>
-						<select value={genreId} onChange={changeGenre} className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-200 focus:border-indigo-500 focus:outline-none">
-							<option value="">All genres</option>
-							{genres.map((genre) => <option key={genre.id} value={genre.id}>{genre.name}</option>)}
-						</select>
+						<div className="relative">
+							<select value={genreId} onChange={changeGenre} style={{ colorScheme: 'dark' }} className="h-12 w-full appearance-none rounded-xl border border-fuchsia-400/40 bg-gradient-to-br from-violet-900/70 via-slate-900/90 to-fuchsia-950/60 px-4 pr-10 text-slate-100 shadow-lg shadow-violet-950/20 backdrop-blur-md transition-colors focus:border-fuchsia-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/30">
+								<option className="bg-slate-900 text-slate-100" value="">All genres</option>
+								{genres.map((genre) => <option className="bg-slate-900 text-slate-100" key={genre.id} value={genre.id}>{genre.name}</option>)}
+							</select>
+							<ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-fuchsia-200" />
+						</div>
 					</label>
 					<label className="text-sm text-slate-400">
 						<span className="mb-2 block font-medium text-slate-300">Sort by</span>
-						<select value={sortBy} onChange={changeSort} className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-200 focus:border-indigo-500 focus:outline-none">
-							{sortOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-						</select>
+						<div className="relative">
+							<select value={sortBy} onChange={changeSort} style={{ colorScheme: 'dark' }} className="h-12 w-full appearance-none rounded-xl border border-fuchsia-400/40 bg-gradient-to-br from-violet-900/70 via-slate-900/90 to-fuchsia-950/60 px-4 pr-10 text-slate-100 shadow-lg shadow-violet-950/20 backdrop-blur-md transition-colors focus:border-fuchsia-300 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/30">
+								{sortOptions.map((option) => <option className="bg-slate-900 text-slate-100" key={option.value} value={option.value}>{option.label}</option>)}
+							</select>
+							<ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-fuchsia-200" />
+						</div>
 					</label>
 				</div>
 			</div>

@@ -3,12 +3,10 @@ import { Heart } from 'lucide-react';
 
 export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSelectMovie }) {
   const title = movie.title || movie.name || 'Untitled';
-  const [imageFailed, setImageFailed] = useState(false);
   const posterPath = movie.posterUrl || (
-    movie.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : 'https://via.placeholder.com/500x750?text=No+Image'
+    movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null
   );
+  const [imageFailed, setImageFailed] = useState(!posterPath);
 
   
   const releaseDate = movie.releaseDate || movie.release_date;
@@ -17,13 +15,13 @@ export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSel
   return (
     <div 
       onClick={() => onSelectMovie && onSelectMovie(movie)}
-      className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg hover:border-slate-700 transition-all cursor-pointer group flex flex-col h-full"
+      className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] shadow-xl shadow-black/20 backdrop-blur-md transition-all hover:-translate-y-1 hover:border-fuchsia-400/40 hover:shadow-fuchsia-950/20 cursor-pointer group flex flex-col h-full"
     >
       {/* Poster Container */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-950">
         {imageFailed ? (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 p-5 text-center">
-            <span className="font-serif text-xl font-bold leading-tight text-indigo-100 sm:text-2xl">{title}</span>
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-violet-950 via-slate-950 to-fuchsia-950/80 p-5 text-center">
+            <span className="font-serif text-xl font-bold leading-tight text-fuchsia-100 sm:text-2xl">{title}</span>
           </div>
         ) : (
           <img
@@ -46,7 +44,7 @@ export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSel
         >
           <Heart 
             className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${
-              isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-200'
+              isWishlisted ? 'fill-fuchsia-400 text-fuchsia-300' : 'text-slate-200'
             }`} 
           />
         </button>
@@ -55,7 +53,7 @@ export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSel
       {/* Movie Info */}
       <div className="p-3 sm:p-4 flex flex-col flex-grow justify-between">
         <div>
-          <h3 className="text-sm sm:text-base font-semibold text-slate-100 truncate group-hover:text-indigo-400 transition-colors">
+          <h3 className="text-sm sm:text-base font-semibold text-slate-100 truncate group-hover:text-fuchsia-300 transition-colors">
             {title}
           </h3>
           {releaseYear && (

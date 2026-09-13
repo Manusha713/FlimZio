@@ -11,7 +11,7 @@ const Navbar = ({ activeTab, setActiveTab, onHome, searchQuery, setSearchQuery, 
   }, [activeTab, searchExpanded]);
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/70 shadow-[0_8px_30px_rgba(0,0,0,0.25)] backdrop-blur-xl">
       <div className="w-full px-4 sm:px-8 lg:px-12 min-h-16 py-3 flex flex-wrap items-center gap-3 sm:gap-6">
         
         {/* Brand Logo */}
@@ -21,10 +21,10 @@ const Navbar = ({ activeTab, setActiveTab, onHome, searchQuery, setSearchQuery, 
           className="flex items-center gap-2 cursor-pointer group"
           aria-label="Go to FlimZio home"
         >
-          <div className="bg-indigo-600 p-2.5 rounded-xl text-white shadow-lg shadow-indigo-950/40 group-hover:bg-indigo-500 transition-colors">
+          <div className="rounded-xl border border-white/20 bg-gradient-to-br from-violet-500 to-fuchsia-600 p-2.5 text-white shadow-lg shadow-fuchsia-950/40 transition-all group-hover:scale-105 group-hover:shadow-fuchsia-500/30">
             <Disc3 className="w-6 h-6 animate-[spin_9s_linear_infinite] group-hover:animate-[spin_2.5s_linear_infinite]" strokeWidth={2.5} />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
+          <span className="text-xl font-bold bg-gradient-to-r from-white via-fuchsia-100 to-fuchsia-300 bg-clip-text text-transparent">
             FlimZio
           </span>
         </button>
@@ -43,14 +43,14 @@ const Navbar = ({ activeTab, setActiveTab, onHome, searchQuery, setSearchQuery, 
                 placeholder="Search movies..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                className="h-10 sm:h-11 w-full rounded-lg border border-slate-700 bg-slate-800 pl-3 pr-10 text-sm sm:text-base text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="h-10 sm:h-11 w-full rounded-xl border border-white/15 bg-white/10 pl-3 pr-10 text-sm sm:text-base text-slate-100 shadow-inner shadow-white/5 backdrop-blur-md placeholder-slate-400 focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/20"
               />
             </form>
           ) : (
             <button
               type="button"
               onClick={onOpenSearch}
-              className="flex h-10 shrink-0 items-center gap-1.5 rounded-lg px-2 sm:h-11 sm:gap-2 sm:px-5 lg:px-6 py-2 text-sm sm:text-base font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+              className="flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 text-sm font-medium text-slate-300 shadow-inner shadow-white/5 backdrop-blur-md transition-all hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15 hover:text-white sm:h-11 sm:gap-2 sm:px-5 lg:px-6"
               aria-label="Open search"
             >
               <Search className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -62,8 +62,8 @@ const Navbar = ({ activeTab, setActiveTab, onHome, searchQuery, setSearchQuery, 
             onClick={() => setActiveTab('explore')}
             className={`flex shrink-0 items-center gap-1.5 px-2 sm:gap-2 sm:px-5 lg:px-6 py-2.5 rounded-lg text-sm sm:text-base font-medium transition-colors ${
               activeTab === 'explore'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'border border-white/20 bg-gradient-to-r from-violet-600/80 to-fuchsia-600/80 text-white shadow-lg shadow-fuchsia-950/30'
+                : 'border border-white/10 bg-white/5 text-slate-300 backdrop-blur-md hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15 hover:text-white'
             }`}
           >
             <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -74,11 +74,11 @@ const Navbar = ({ activeTab, setActiveTab, onHome, searchQuery, setSearchQuery, 
             onClick={() => setActiveTab('wishlist')}
             className={`flex shrink-0 items-center gap-1.5 px-2 sm:gap-2 sm:px-5 lg:px-6 py-2.5 rounded-lg text-sm sm:text-base font-medium transition-colors relative ${
               activeTab === 'wishlist'
-                ? 'bg-indigo-600 text-white'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'border border-white/20 bg-gradient-to-r from-violet-600/80 to-fuchsia-600/80 text-white shadow-lg shadow-fuchsia-950/30'
+                : 'border border-white/10 bg-white/5 text-slate-300 backdrop-blur-md hover:border-fuchsia-400/40 hover:bg-fuchsia-500/15 hover:text-white'
             }`}
           >
-            <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'wishlist' ? 'fill-fuchsia-300 text-fuchsia-200' : ''}`} />
             <span className="hidden sm:inline">Wishlist</span>
           </button>
         </nav>
