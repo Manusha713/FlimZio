@@ -23,6 +23,16 @@ const search = async (req, res, next) => {
   }
 };
 
+const getTopRated = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const data = await tmdbService.getTopRatedMovies(page);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const discover = async (req, res, next) => {
   try {
     const { page, sortBy, genreId } = req.query;
@@ -59,6 +69,7 @@ const getGenres = async (req, res, next) => {
 module.exports = {
   getTrending,
   search,
+  getTopRated,
   discover,
   getDetails,
   getGenres,

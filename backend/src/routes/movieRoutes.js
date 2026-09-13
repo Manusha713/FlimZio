@@ -5,7 +5,7 @@ const cacheMiddleware = require('../middleware/cacheMiddleware');
 
 // Genres rarely change: cache for 1 day (86,400 seconds)
 router.get('/genres', cacheMiddleware(86400), movieController.getGenres);
-
+router.get('/top-rated', cacheMiddleware(900), movieController.getTopRated);
 // Trending, Search, Discovery, and Details cached for 15 minutes (900 seconds)
 router.get('/trending', cacheMiddleware(900), movieController.getTrending);
 router.get('/search', cacheMiddleware(900), movieController.search);

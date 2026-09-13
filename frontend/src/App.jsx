@@ -1,18 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import MovieCard from './components/MovieCard';
-import { fetchTrendingMovies, searchMovies, fetchWishlist, addToWishlist, removeFromWishlist } from './services/api';
-import { Search, Loader2 } from 'lucide-react';
+import MovieRow from './components/MovieRow';
+import { 
+  fetchTrendingMovies, 
+  searchMovies, 
+  fetchWishlist, 
+  addToWishlist, 
+  removeFromWishlist,
+  fetchTopRatedMovies,
+  fetchMoviesByGenre
+} from './services/api';
+import { Search, Loader2, Sparkles, ArrowLeft } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('trending');
+  
+  // Dashboard row states
+  const [homeData, setHomeData] = useState({ trending: [], topRated: [], action: [], comedy: [] });
+  const [viewingCategory, setViewingCategory] = useState(null);
+  
+  // Search & Wishlist states
   const [movies, setMovies] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [autocorrectedWord, setAutocorrectedWord] = useState(null);
 
-  // Load wishlist on startup
+  // Load wishlist on initial startup
   useEffect(() => {
     loadWishlist();
   }, []);
@@ -20,26 +36,40 @@ function App() {
   // Reset or load data when tab changes
   useEffect(() => {
     setError(null);
+    setAutocorrectedWord(null);
+    setViewingCategory(null);
+    
     if (activeTab === 'trending') {
-      loadTrendingMovies();
+      loadHomeDashboard();
     } else if (activeTab === 'search') {
-      // Clear old movies when switching to search view
       setMovies([]);
     } else if (activeTab === 'wishlist') {
       loadWishlist();
     }
   }, [activeTab]);
 
-  const loadTrendingMovies = async () => {
+  const loadHomeDashboard = async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await fetchTrendingMovies();
-      // Access array safely depending on payload format
-      const results = res.data?.results || res.results || res.data || [];
-      setMovies(results);
+      
+      const [trendRes, topRes, actionRes, comedyRes] = await Promise.all([
+        fetchTrendingMovies(),
+        fetchTopRatedMovies(),
+        fetchMoviesByGenre('28'),
+        fetchMoviesByGenre('35')
+      ]);
+
+      const extractResults = (res) => res?.data?.results || res?.results || res?.data || [];
+
+      setHomeData({
+        trending: extractResults(trendRes),
+        topRated: extractResults(topRes),
+        action: extractResults(actionRes),
+        comedy: extractResults(comedyRes)
+      });
     } catch (err) {
-      setError('Failed to load trending movies. Ensure backend is running.');
+      setError('Failed to load home dashboard. Ensure backend is running.');
     } finally {
       setLoading(false);
     }
@@ -48,7 +78,7 @@ function App() {
   const loadWishlist = async () => {
     try {
       const res = await fetchWishlist();
-      const items = res.data || [];
+      const items = res?.data || [];
       setWishlist(items);
     } catch (err) {
       console.error('Failed to load wishlist:', err);
@@ -62,11 +92,17 @@ function App() {
     try {
       setLoading(true);
       setError(null);
+      setAutocorrectedWord(null);
+      
       const res = await searchMovies(searchQuery);
-      const results = res.data?.results || res.results || res.data || [];
+      const results = res?.data?.results || res?.results || res?.data || [];
       
       setMovies(results);
-      if (results.length === 0) {
+      
+      const corrected = res?.data?.autocorrectedTo || res?.autocorrectedTo;
+      if (corrected) {
+        setAutocorrectedWord(corrected);
+      } else if (results.length === 0) {
         setError(`No movies found matching "${searchQuery}".`);
       }
     } catch (err) {
@@ -97,8 +133,13 @@ function App() {
     return wishlist.some((item) => item.movieId === movieId);
   };
 
+  const handleShowAll = (title, categoryMovies) => {
+    setViewingCategory({ title, movies: categoryMovies });
+    window.scrollTo(0, 0);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-10">
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -128,36 +169,52 @@ function App() {
           </form>
         )}
 
-        {/* Section Heading */}
-        <div className="mb-6">
+        {/* Section Heading & Navigation */}
+        <div className="mb-6 flex items-center">
+          {activeTab === 'trending' && viewingCategory && (
+            <button 
+              onClick={() => setViewingCategory(null)}
+              className="mr-4 p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
           <h1 className="text-2xl font-bold tracking-tight">
-            {activeTab === 'trending' && 'Trending Movies'}
+            {activeTab === 'trending' && !viewingCategory && 'Home Dashboard'}
+            {activeTab === 'trending' && viewingCategory && `All ${viewingCategory.title}`}
             {activeTab === 'search' && 'Search Results'}
             {activeTab === 'wishlist' && 'Your Saved Wishlist'}
           </h1>
         </div>
 
-        {/* Error Notification */}
+        {/* Notifications */}
+        {autocorrectedWord && (
+          <div className="mb-6 p-4 bg-indigo-950/60 border border-indigo-700 rounded-xl text-indigo-200 text-sm flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+            <span>
+              Showing results for <strong className="text-white font-semibold">{autocorrectedWord}</strong> instead of <em>"{searchQuery}"</em>.
+            </span>
+          </div>
+        )}
+
         {error && (
           <div className="p-4 mb-6 bg-rose-950/50 border border-rose-800 rounded-xl text-rose-300 text-sm">
             {error}
           </div>
         )}
 
-        {/* Loading Spinner */}
+        {/* Loading Spinner or Grid Content */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-3" />
             <p className="text-slate-400 text-sm">Fetching movies...</p>
           </div>
         ) : (
-          /* Movie Cards Grid */
           <div>
-            {activeTab === 'wishlist' ? (
+            {/* Wishlist View */}
+            {activeTab === 'wishlist' && (
               wishlist.length === 0 ? (
-                <div className="text-center py-20 text-slate-500">
-                  Your wishlist is empty.
-                </div>
+                <div className="text-center py-20 text-slate-500">Your wishlist is empty.</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {wishlist.map((item) => (
@@ -170,13 +227,12 @@ function App() {
                   ))}
                 </div>
               )
-            ) : (
+            )}
+
+            {/* Search View */}
+            {activeTab === 'search' && (
               movies.length === 0 ? (
-                <div className="text-center py-20 text-slate-500">
-                  {activeTab === 'search'
-                    ? 'Type a movie title above and press Search.'
-                    : 'No movies found.'}
-                </div>
+                <div className="text-center py-20 text-slate-500">Type a movie title above and press Search.</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {movies.map((movie) => (
@@ -189,6 +245,54 @@ function App() {
                   ))}
                 </div>
               )
+            )}
+
+            {/* Dashboard Rows View */}
+            {activeTab === 'trending' && !viewingCategory && (
+              <div className="space-y-4">
+                <MovieRow 
+                  title="Trending Movies" 
+                  movies={homeData.trending} 
+                  wishlist={wishlist} 
+                  onToggleWishlist={handleToggleWishlist}
+                  onShowAll={() => handleShowAll("Trending Movies", homeData.trending)} 
+                />
+                <MovieRow 
+                  title="Top Rated" 
+                  movies={homeData.topRated} 
+                  wishlist={wishlist} 
+                  onToggleWishlist={handleToggleWishlist}
+                  onShowAll={() => handleShowAll("Top Rated", homeData.topRated)} 
+                />
+                <MovieRow 
+                  title="Action Blockbusters" 
+                  movies={homeData.action} 
+                  wishlist={wishlist} 
+                  onToggleWishlist={handleToggleWishlist}
+                  onShowAll={() => handleShowAll("Action Blockbusters", homeData.action)} 
+                />
+                <MovieRow 
+                  title="Comedy Hits" 
+                  movies={homeData.comedy} 
+                  wishlist={wishlist} 
+                  onToggleWishlist={handleToggleWishlist}
+                  onShowAll={() => handleShowAll("Comedy Hits", homeData.comedy)} 
+                />
+              </div>
+            )}
+
+            {/* Category Full-Grid View */}
+            {activeTab === 'trending' && viewingCategory && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {viewingCategory.movies.map((movie) => (
+                  <MovieCard
+                    key={movie.id}
+                    movie={movie}
+                    isWishlisted={isMovieInWishlist(movie.id)}
+                    onToggleWishlist={handleToggleWishlist}
+                  />
+                ))}
+              </div>
             )}
           </div>
         )}

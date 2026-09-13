@@ -15,6 +15,17 @@ export const fetchTrendingMovies = async (page = 1) => {
   return response.data;
 };
 
+// Add these below your existing fetchTrendingMovies function
+export const fetchTopRatedMovies = async (page = 1) => {
+  const response = await api.get(`/movies/top-rated?page=${page}`);
+  return response.data;
+};
+
+export const fetchMoviesByGenre = async (genreId, page = 1) => {
+  const response = await api.get(`/movies/discover?genreId=${genreId}&page=${page}`);
+  return response.data;
+};
+
 export const searchMovies = async (q, page = 1) => {
   const response = await api.get(`/movies/search?q=${encodeURIComponent(q)}&page=${page}`);
   return response.data;
