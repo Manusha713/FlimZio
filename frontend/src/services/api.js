@@ -31,14 +31,19 @@ export const searchMovies = async (q, page = 1) => {
   return response.data;
 };
 
-export const fetchMovieDetails = async (id) => {
-  const response = await api.get(`/movies/${id}`);
-  return response.data;
-};
-
 // Wishlist API calls
 export const fetchWishlist = async () => {
   const response = await api.get('/wishlist');
+  return response.data;
+};
+
+export const fetchMovieDetails = async (movieId) => {
+  const response = await api.get(`/movies/${movieId}/details`);
+  return response.data;
+};
+
+export const fetchSimilarMovies = async (movieId, page = 1) => {
+  const response = await api.get(`/movies/${movieId}/similar?page=${page}`);
   return response.data;
 };
 

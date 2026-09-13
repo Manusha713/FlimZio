@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import MovieCard from './components/MovieCard';
 import MovieRow from './components/MovieRow';
+import MovieDetail from './components/MovieDetail';
 import { 
   fetchTrendingMovies, 
   searchMovies, 
@@ -11,14 +12,17 @@ import {
   fetchTopRatedMovies,
   fetchMoviesByGenre
 } from './services/api';
-import { Search, Loader2, Sparkles, ArrowLeft } from 'lucide-react';
+import { Loader2, Sparkles, ArrowLeft } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('trending');
   
+  // Navigation & Detail States
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [viewingCategory, setViewingCategory] = useState(null);
+
   // Dashboard row states
   const [homeData, setHomeData] = useState({ trending: [], topRated: [], action: [], comedy: [] });
-  const [viewingCategory, setViewingCategory] = useState(null);
   
   // Search & Wishlist states
   const [movies, setMovies] = useState([]);
@@ -33,11 +37,12 @@ function App() {
     loadWishlist();
   }, []);
 
-  // Reset or load data when tab changes
+  // Reset states when tab changes
   useEffect(() => {
     setError(null);
     setAutocorrectedWord(null);
     setViewingCategory(null);
+    setSelectedMovie(null);
     
     if (activeTab === 'trending') {
       loadHomeDashboard();
@@ -93,6 +98,7 @@ function App() {
       setLoading(true);
       setError(null);
       setAutocorrectedWord(null);
+      setSelectedMovie(null);
       
       const res = await searchMovies(searchQuery);
       const results = res?.data?.results || res?.results || res?.data || [];
@@ -135,6 +141,12 @@ function App() {
 
   const handleShowAll = (title, categoryMovies) => {
     setViewingCategory({ title, movies: categoryMovies });
+    setSelectedMovie(null);
+    window.scrollTo(0, 0);
+  };
+
+  const handleSelectMovie = (movie) => {
+    setSelectedMovie(movie);
     window.scrollTo(0, 0);
   };
 
@@ -143,52 +155,35 @@ function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        wishlistCount={wishlist.length}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onSearch={handleSearch}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Bar */}
-        {activeTab === 'search' && (
-          <form onSubmit={handleSearch} className="mb-8 flex gap-3 max-w-2xl mx-auto">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search for movies by title (e.g., Inception)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-11 pr-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-6 py-3 rounded-xl transition-colors"
-            >
-              Search
-            </button>
-          </form>
+        {/* Section Heading & Navigation */}
+        {!selectedMovie && (
+          <div className="mb-6 flex items-center">
+            {activeTab === 'trending' && viewingCategory && (
+              <button 
+                onClick={() => setViewingCategory(null)}
+                className="mr-4 p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <h1 className="text-2xl font-bold tracking-tight">
+              {activeTab === 'trending' && !viewingCategory && 'Home Dashboard'}
+              {activeTab === 'trending' && viewingCategory && `All ${viewingCategory.title}`}
+              {activeTab === 'search' && 'Search Results'}
+              {activeTab === 'wishlist' && 'Your Saved Wishlist'}
+              {activeTab === 'explore' && 'Explore'}
+            </h1>
+          </div>
         )}
 
-        {/* Section Heading & Navigation */}
-        <div className="mb-6 flex items-center">
-          {activeTab === 'trending' && viewingCategory && (
-            <button 
-              onClick={() => setViewingCategory(null)}
-              className="mr-4 p-2 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          )}
-          <h1 className="text-2xl font-bold tracking-tight">
-            {activeTab === 'trending' && !viewingCategory && 'Home Dashboard'}
-            {activeTab === 'trending' && viewingCategory && `All ${viewingCategory.title}`}
-            {activeTab === 'search' && 'Search Results'}
-            {activeTab === 'wishlist' && 'Your Saved Wishlist'}
-          </h1>
-        </div>
-
         {/* Notifications */}
-        {autocorrectedWord && (
+        {autocorrectedWord && !selectedMovie && (
           <div className="mb-6 p-4 bg-indigo-950/60 border border-indigo-700 rounded-xl text-indigo-200 text-sm flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
             <span>
@@ -197,14 +192,23 @@ function App() {
           </div>
         )}
 
-        {error && (
+        {error && !selectedMovie && (
           <div className="p-4 mb-6 bg-rose-950/50 border border-rose-800 rounded-xl text-rose-300 text-sm">
             {error}
           </div>
         )}
 
-        {/* Loading Spinner or Grid Content */}
-        {loading ? (
+        {/* Render Selected Movie View */}
+        {selectedMovie ? (
+          <MovieDetail 
+            movieId={selectedMovie.id} 
+            onBack={() => setSelectedMovie(null)}
+            wishlist={wishlist}
+            onToggleWishlist={handleToggleWishlist}
+            onSelectMovie={handleSelectMovie}
+            
+          />
+        ) : loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-3" />
             <p className="text-slate-400 text-sm">Fetching movies...</p>
@@ -219,14 +223,22 @@ function App() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {wishlist.map((item) => (
                     <MovieCard
-                      key={item.movieId}
-                      movie={{ ...item, id: item.movieId }}
+                      key={item.movieId || item.id}
+                      movie={{ ...item, id: item.movieId || item.id }}
                       isWishlisted={true}
                       onToggleWishlist={handleToggleWishlist}
+                      onSelectMovie={handleSelectMovie}
                     />
                   ))}
                 </div>
               )
+            )}
+
+            {/* Explore destination placeholder */}
+            {activeTab === 'explore' && (
+              <div className="text-center py-20 text-slate-500">
+                Explore content is coming soon.
+              </div>
             )}
 
             {/* Search View */}
@@ -241,6 +253,7 @@ function App() {
                       movie={movie}
                       isWishlisted={isMovieInWishlist(movie.id)}
                       onToggleWishlist={handleToggleWishlist}
+                      onSelectMovie={handleSelectMovie}
                     />
                   ))}
                 </div>
@@ -255,6 +268,7 @@ function App() {
                   movies={homeData.trending} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
+                  onSelectMovie={handleSelectMovie}
                   onShowAll={() => handleShowAll("Trending Movies", homeData.trending)} 
                 />
                 <MovieRow 
@@ -262,6 +276,7 @@ function App() {
                   movies={homeData.topRated} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
+                  onSelectMovie={handleSelectMovie}
                   onShowAll={() => handleShowAll("Top Rated", homeData.topRated)} 
                 />
                 <MovieRow 
@@ -269,6 +284,7 @@ function App() {
                   movies={homeData.action} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
+                  onSelectMovie={handleSelectMovie}
                   onShowAll={() => handleShowAll("Action Blockbusters", homeData.action)} 
                 />
                 <MovieRow 
@@ -276,6 +292,7 @@ function App() {
                   movies={homeData.comedy} 
                   wishlist={wishlist} 
                   onToggleWishlist={handleToggleWishlist}
+                  onSelectMovie={handleSelectMovie}
                   onShowAll={() => handleShowAll("Comedy Hits", homeData.comedy)} 
                 />
               </div>
@@ -290,6 +307,7 @@ function App() {
                     movie={movie}
                     isWishlisted={isMovieInWishlist(movie.id)}
                     onToggleWishlist={handleToggleWishlist}
+                    onSelectMovie={handleSelectMovie}
                   />
                 ))}
               </div>

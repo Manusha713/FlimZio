@@ -47,6 +47,27 @@ const discover = async (req, res, next) => {
   }
 };
 
+const getMovieDetails = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const data = await tmdbService.getMovieDetails(id);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSimilarMovies = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const page = parseInt(req.query.page, 10) || 1;
+    const data = await tmdbService.getSimilarMovies(id, page);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getDetails = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -73,4 +94,6 @@ module.exports = {
   discover,
   getDetails,
   getGenres,
+  getSimilarMovies,
+  getMovieDetails,
 };

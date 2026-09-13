@@ -1,71 +1,60 @@
 import React from 'react';
-import { Star, Bookmark, Trash2, Calendar } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
-const MovieCard = ({ movie, isWishlisted, onToggleWishlist }) => {
-  const { id, title, posterUrl, rating, releaseDate, overview } = movie;
+export default function MovieCard({ movie, isWishlisted, onToggleWishlist, onSelectMovie }) {
+  const title = movie.title || movie.name || 'Untitled';
+  const posterPath = movie.posterUrl || (
+    movie.poster_path
+      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : 'https://via.placeholder.com/500x750?text=No+Image'
+  );
+
+  
+  const releaseDate = movie.releaseDate || movie.release_date;
+  const releaseYear = releaseDate ? releaseDate.split('-')[0] : '';
 
   return (
-    <div className="bg-slate-800/80 rounded-xl overflow-hidden border border-slate-700/50 hover:border-slate-600 transition-all duration-300 flex flex-col group">
-      {/* Poster Image Container */}
-      <div className="relative aspect-[2/3] bg-slate-900 overflow-hidden">
-        {posterUrl ? (
-          <img
-            src={posterUrl}
-            alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-500">
-            No Image Available
-          </div>
-        )}
-
-        {/* Rating Badge */}
-        {rating > 0 && (
-          <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-md border border-slate-700 flex items-center gap-1.5 text-xs font-semibold text-amber-400">
-            <Star className="w-3.5 h-3.5 fill-amber-400" />
-            {rating}
-          </div>
-        )}
-
-        {/* Wishlist Button Overlay */}
+    <div 
+      onClick={() => onSelectMovie && onSelectMovie(movie)}
+      className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg hover:border-slate-700 transition-all cursor-pointer group flex flex-col h-full"
+    >
+      {/* Poster Container */}
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-950">
+        <img
+          src={posterPath}
+          alt={title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+        
+        {/* Wishlist Button */}
         <button
-          onClick={() => onToggleWishlist(movie)}
-          className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all ${
-            isWishlisted
-              ? 'bg-rose-600 text-white hover:bg-rose-700'
-              : 'bg-slate-900/80 text-slate-300 hover:text-white hover:bg-slate-900'
-          }`}
-          title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevents clicking the heart from opening the detail page
+            onToggleWishlist(movie);
+          }}
+          className="absolute top-3 right-3 p-2 rounded-full bg-slate-950/70 hover:bg-slate-950 text-white backdrop-blur-sm transition-colors"
+          aria-label="Toggle Wishlist"
         >
-          {isWishlisted ? (
-            <Trash2 className="w-4 h-4" />
-          ) : (
-            <Bookmark className="w-4 h-4" />
-          )}
+          <Heart 
+            className={`w-5 h-5 transition-colors ${
+              isWishlisted ? 'fill-rose-500 text-rose-500' : 'text-slate-200'
+            }`} 
+          />
         </button>
       </div>
 
-      {/* Movie Details */}
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="font-bold text-slate-100 text-lg line-clamp-1 mb-1" title={title}>
-          {title}
-        </h3>
-
-        {releaseDate && (
-          <div className="flex items-center gap-1 text-slate-400 text-xs mb-2">
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{releaseDate.substring(0, 4)}</span>
-          </div>
-        )}
-
-        <p className="text-slate-400 text-xs line-clamp-3 mb-4 flex-grow">
-          {overview || 'No description available for this movie.'}
-        </p>
+      {/* Movie Info */}
+      <div className="p-4 flex flex-col flex-grow justify-between">
+        <div>
+          <h3 className="font-semibold text-slate-100 truncate group-hover:text-indigo-400 transition-colors">
+            {title}
+          </h3>
+          {releaseYear && (
+            <p className="text-xs text-slate-400 mt-1">{releaseYear}</p>
+          )}
+        </div>
       </div>
     </div>
   );
-};
-
-export default MovieCard;
+}

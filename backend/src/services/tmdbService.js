@@ -1,3 +1,5 @@
+const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+
 const tmdbClient = require('../config/tmdb');
 const { transformMovie } = require('../utils/transformMovieData');
 const axios = require('axios'); // Added for Datamuse API
@@ -84,14 +86,44 @@ const getDiscoverMovies = async ({ page = 1, sortBy = 'popularity.desc', genreId
   };
 };
 
-const getMovieDetails = async (id) => {
-  const response = await tmdbClient.get(`/movie/${id}`);
-  return transformMovie(response.data);
-};
+
 
 const getGenres = async () => {
   const response = await tmdbClient.get('/genre/movie/list');
   return response.data.genres;
+};
+const getMovieDetails = async (movieId) => {
+  const response = await tmdbClient.get(`/movie/${movieId}`);
+  const data = response.data;
+
+  return {
+    id: data.id,
+    title: data.title,
+    tagline: data.tagline,
+    overview: data.overview,
+    posterPath: data.poster_path ? `${IMAGE_BASE_URL}${data.poster_path}` : null,
+    backdropPath: data.backdrop_path ? `https://image.tmdb.org/t/p/w1280${data.backdrop_path}` : null,
+    releaseDate: data.release_date,
+    voteAverage: data.vote_average ? data.vote_average.toFixed(1) : 'N/A',
+    voteCount: data.vote_count,
+    runtime: data.runtime,
+    budget: data.budget,
+    revenue: data.revenue,
+    status: data.status,
+    genres: data.genres || [],
+    productionCompanies: data.production_companies || [],
+  };
+};
+
+// Fetch TMDB similar movies recommendation list
+const getSimilarMovies = async (movieId, page = 1) => {
+  const response = await tmdbClient.get(`/movie/${movieId}/similar`, { params: { page } });
+  return {
+    page: response.data.page,
+    totalPages: response.data.total_pages,
+    totalResults: response.data.total_results,
+    results: response.data.results.map(transformMovie),
+  };
 };
 
 module.exports = {
@@ -101,4 +133,5 @@ module.exports = {
   getDiscoverMovies,
   getMovieDetails,
   getGenres,
+  getSimilarMovies,
 };
