@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import MovieCard from './components/MovieCard';
 import MovieRow from './components/MovieRow';
 import MovieDetail from './components/MovieDetail';
+import Explore from './pages/Explore';
 import { 
   fetchTrendingMovies, 
   searchMovies, 
@@ -16,6 +17,8 @@ import { Loader2, Sparkles, ArrowLeft } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('trending');
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const [navigationHistory, setNavigationHistory] = useState([]);
   
   // Navigation & Detail States
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -32,6 +35,48 @@ function App() {
   const [error, setError] = useState(null);
   const [autocorrectedWord, setAutocorrectedWord] = useState(null);
 
+  const getCurrentView = () => ({
+    activeTab,
+    selectedMovie,
+    viewingCategory,
+    searchQuery,
+  });
+
+  const handleTabChange = (nextTab) => {
+    if (nextTab === activeTab) return;
+    setNavigationHistory((history) => [...history, getCurrentView()]);
+    setSelectedMovie(null);
+    setViewingCategory(null);
+    setMovies(nextTab === 'search' ? [] : movies);
+    setSearchExpanded(nextTab === 'search');
+    setActiveTab(nextTab);
+  };
+
+  const handleOpenSearch = () => {
+    setSearchExpanded(true);
+  };
+
+  const handleHome = () => {
+    setActiveTab('trending');
+    setSelectedMovie(null);
+    setViewingCategory(null);
+    setSearchExpanded(false);
+  };
+
+  const handleBack = () => {
+    setNavigationHistory((history) => {
+      const previousView = history[history.length - 1];
+      if (!previousView) return history;
+
+      setActiveTab(previousView.activeTab);
+      setSelectedMovie(previousView.selectedMovie);
+      setViewingCategory(previousView.viewingCategory);
+      setSearchQuery(previousView.searchQuery);
+      setSearchExpanded(previousView.activeTab === 'search');
+      return history.slice(0, -1);
+    });
+  };
+
   // Load wishlist on initial startup
   useEffect(() => {
     loadWishlist();
@@ -41,13 +86,8 @@ function App() {
   useEffect(() => {
     setError(null);
     setAutocorrectedWord(null);
-    setViewingCategory(null);
-    setSelectedMovie(null);
-    
     if (activeTab === 'trending') {
       loadHomeDashboard();
-    } else if (activeTab === 'search') {
-      setMovies([]);
     } else if (activeTab === 'wishlist') {
       loadWishlist();
     }
@@ -93,6 +133,10 @@ function App() {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
+
+    if (activeTab !== 'search') {
+      handleTabChange('search');
+    }
 
     try {
       setLoading(true);
@@ -140,12 +184,14 @@ function App() {
   };
 
   const handleShowAll = (title, categoryMovies) => {
+    setNavigationHistory((history) => [...history, getCurrentView()]);
     setViewingCategory({ title, movies: categoryMovies });
     setSelectedMovie(null);
     window.scrollTo(0, 0);
   };
 
   const handleSelectMovie = (movie) => {
+    setNavigationHistory((history) => [...history, getCurrentView()]);
     setSelectedMovie(movie);
     window.scrollTo(0, 0);
   };
@@ -154,13 +200,28 @@ function App() {
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-10">
       <Navbar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
+        onHome={handleHome}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onSearch={handleSearch}
+        searchExpanded={searchExpanded}
+        onOpenSearch={handleOpenSearch}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {navigationHistory.length > 0 && (activeTab !== 'trending' || selectedMovie) && (
+          <div className="flex justify-end mb-6">
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-sm font-medium text-slate-300 shadow-lg hover:bg-slate-800 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+          </div>
+        )}
+
         {/* Section Heading & Navigation */}
         {!selectedMovie && (
           <div className="mb-6 flex items-center">
@@ -173,11 +234,9 @@ function App() {
               </button>
             )}
             <h1 className="text-2xl font-bold tracking-tight">
-              {activeTab === 'trending' && !viewingCategory && 'Home Dashboard'}
               {activeTab === 'trending' && viewingCategory && `All ${viewingCategory.title}`}
               {activeTab === 'search' && 'Search Results'}
               {activeTab === 'wishlist' && 'Your Saved Wishlist'}
-              {activeTab === 'explore' && 'Explore'}
             </h1>
           </div>
         )}
@@ -202,11 +261,16 @@ function App() {
         {selectedMovie ? (
           <MovieDetail 
             movieId={selectedMovie.id} 
-            onBack={() => setSelectedMovie(null)}
             wishlist={wishlist}
             onToggleWishlist={handleToggleWishlist}
             onSelectMovie={handleSelectMovie}
             
+          />
+        ) : activeTab === 'explore' ? (
+          <Explore
+            wishlist={wishlist}
+            onToggleWishlist={handleToggleWishlist}
+            onSelectMovie={handleSelectMovie}
           />
         ) : loading ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -232,13 +296,6 @@ function App() {
                   ))}
                 </div>
               )
-            )}
-
-            {/* Explore destination placeholder */}
-            {activeTab === 'explore' && (
-              <div className="text-center py-20 text-slate-500">
-                Explore content is coming soon.
-              </div>
             )}
 
             {/* Search View */}

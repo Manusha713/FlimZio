@@ -88,6 +88,32 @@ const getDiscoverMovies = async ({ page = 1, sortBy = 'popularity.desc', genreId
 
 
 
+const getExploreMovies = async ({ category = 'popular', page = 1, sortBy = 'popularity.desc', genreId = '' }) => {
+  const categoryPaths = {
+    popular: '/movie/popular',
+    trending: '/trending/movie/week',
+    'top-rated': '/movie/top_rated',
+    'now-playing': '/movie/now_playing',
+    upcoming: '/movie/upcoming',
+  };
+  const useDiscover = Boolean(genreId) || sortBy !== 'popularity.desc';
+  const path = useDiscover ? '/discover/movie' : categoryPaths[category] || categoryPaths.popular;
+  const params = { page };
+
+  if (useDiscover) {
+    params.sort_by = sortBy;
+    if (genreId) params.with_genres = genreId;
+  }
+
+  const response = await tmdbClient.get(path, { params });
+  return {
+    page: response.data.page,
+    totalPages: response.data.total_pages,
+    totalResults: response.data.total_results,
+    results: response.data.results.map(transformMovie),
+  };
+};
+
 const getGenres = async () => {
   const response = await tmdbClient.get('/genre/movie/list');
   return response.data.genres;
@@ -131,6 +157,7 @@ module.exports = {
   getTopRatedMovies,
   searchMovies,
   getDiscoverMovies,
+  getExploreMovies,
   getMovieDetails,
   getGenres,
   getSimilarMovies,

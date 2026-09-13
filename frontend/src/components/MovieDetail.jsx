@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { fetchMovieDetails, fetchSimilarMovies, fetchMoviesByGenre } from '../services/api';
 import MovieRow from './MovieRow';
-import { ArrowLeft, Star, Clock, Calendar, Heart, DollarSign, Building2 } from 'lucide-react';
+import { Star, Clock, Calendar, Heart, DollarSign, Building2 } from 'lucide-react';
 
-export default function MovieDetail({ movieId, onBack, wishlist, onToggleWishlist, onSelectMovie }) {
+export default function MovieDetail({ movieId, wishlist, onToggleWishlist, onSelectMovie }) {
   const [movie, setMovie] = useState(null);
   const [similarMovies, setSimilarMovies] = useState([]);
   const [genreMovies, setGenreMovies] = useState([]);
@@ -81,13 +81,6 @@ export default function MovieDetail({ movieId, onBack, wishlist, onToggleWishlis
 
   return (
     <div className="min-h-screen text-slate-100 pb-12">
-      <button
-        onClick={onBack}
-        className="mb-6 flex items-center gap-2 bg-slate-900/80 hover:bg-slate-800 text-slate-200 px-4 py-2 rounded-xl border border-slate-800 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back to Movies
-      </button>
-
       {/* Hero Header */}
       <div className="relative rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 mb-10">
         {movie.backdropPath && (

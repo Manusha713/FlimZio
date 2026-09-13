@@ -26,6 +26,17 @@ export const fetchMoviesByGenre = async (genreId, page = 1) => {
   return response.data;
 };
 
+export const fetchExploreMovies = async ({ category, genreId, sortBy, page = 1 }) => {
+  const params = new URLSearchParams({ category, genreId, sortBy, page: String(page) });
+  const response = await api.get(`/movies/explore?${params.toString()}`);
+  return response.data;
+};
+
+export const fetchGenres = async () => {
+  const response = await api.get('/movies/genres');
+  return response.data;
+};
+
 export const searchMovies = async (q, page = 1) => {
   const response = await api.get(`/movies/search?q=${encodeURIComponent(q)}&page=${page}`);
   return response.data;

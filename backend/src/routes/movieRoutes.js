@@ -7,6 +7,7 @@ router.get('/:id/details', cacheMiddleware(900), movieController.getMovieDetails
 router.get('/:id/similar', cacheMiddleware(900), movieController.getSimilarMovies);
 // Genres rarely change: cache for 1 day (86,400 seconds)
 router.get('/genres', cacheMiddleware(86400), movieController.getGenres);
+router.get('/explore', cacheMiddleware(900), movieController.explore);
 router.get('/top-rated', cacheMiddleware(900), movieController.getTopRated);
 // Trending, Search, Discovery, and Details cached for 15 minutes (900 seconds)
 router.get('/trending', cacheMiddleware(900), movieController.getTrending);

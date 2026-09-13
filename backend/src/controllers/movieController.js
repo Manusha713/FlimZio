@@ -47,6 +47,21 @@ const discover = async (req, res, next) => {
   }
 };
 
+const explore = async (req, res, next) => {
+  try {
+    const { category, page, sortBy, genreId } = req.query;
+    const data = await tmdbService.getExploreMovies({
+      category: category || 'popular',
+      page: parseInt(page, 10) || 1,
+      sortBy: sortBy || 'popularity.desc',
+      genreId: genreId || '',
+    });
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getMovieDetails = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -92,6 +107,7 @@ module.exports = {
   search,
   getTopRated,
   discover,
+  explore,
   getDetails,
   getGenres,
   getSimilarMovies,
